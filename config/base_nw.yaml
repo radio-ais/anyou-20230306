@@ -1,0 +1,133 @@
+# =============================================================================
+# metaData:
+#  title: "Pyradiomics Parameter File for 'DeepRadiomics' Research"
+#  author: "Y. Ando"
+#  co-authors:
+#  collaborators:
+#    - "S.H. Park"
+#    - "J.H. Cho"
+#    - "H.J. Lim"
+#  date: "2021-03-29"
+#  description: ""
+# =============================================================================
+
+# =============================================================================
+# Format:
+# <category>:
+#   <setting_name>: <setting_value
+#
+# Example:
+#   imageType:
+#     Original: {}
+#     LoG: {'sigma': [1.0, 3.0]}
+# =============================================================================
+
+# =============================================================================
+# Title: Images Types
+# Usage: Uncomment and specify custom kwarg settings as dictionary. If <value>
+#   is an empty dictionary, '{}', no custom settings are added. For more info,
+#   see ...
+# =============================================================================
+imageType:
+  Original: {}
+#  Gradient: {}
+#  LocalBinaryPattern2D: {}
+#  LocalBinaryPattern3D: {}
+
+
+# =============================================================================
+# Feature Class
+# Usage: For more info, see ...
+# =============================================================================
+featureClass:
+  firstorder:
+  shape:
+  glcm:
+  glrlm:
+  glszm:
+  gldm:
+  ngtdm:
+
+# =============================================================================
+# Title: Settings
+# Usage: For more info, see ...
+# =============================================================================
+setting:
+  label: 255
+# - Feature Extractor Level:
+#   - Image Normalization:
+  normalize:  false
+#  normalizeScale: 1
+#  removeOutliers: None
+#   - Resampling the image:
+  resampledPixelSpacing: [0.7, 0.7, 2.5]
+  interpolator: 'sitkLinear'
+#  padDistance: 5
+#   - Pre-Cropping:
+  preCrop: false
+#   - Resegmentation:
+#  resegmentRange: 
+#resegmentMode: 'absolute'
+#  resegmentShape: false
+#   - Mask validation:
+#   minimumROIDimensions: 2
+#   minimumROISize: 
+#   geometryTolerance: 
+#   correctMask: false
+#   - Miscellaneous:
+#   additionalInfo: true
+# - Filter Level:
+#    - Notes:
+#    - Laplacian of Gaussian settings:
+#  sigma: []
+#    - Wavelet settings:
+#  start_level: 0
+#  level: 1
+#  wavelet: "coif1"
+#    - Gradient settings:
+#  gradientUseSpacing: true
+#    - Local Binary Pattern 2D:
+#      - Requirements:
+#        - skimage
+#  lbp2DRadius: 1
+#  lbp2DSamples: 9
+#  lbp2DMethod: 'uniform'
+#    - Local Binary Pattern 3D:
+#      - Requirements:
+#        - scipy
+#        - trimesh
+#  lbp3DLevels: 2
+#  lbp3DIcosphereRadius: 1
+#  lbp3DIcosphereSubdivision: 1
+# - Feature Class Level:
+#  Label: 1
+#    - Image discretization:
+  binWidth: 10
+#  binCount: 256
+#    - Forced 2D extraction:
+#  force2D: false
+#  force2Ddimension: 0
+#    - Texture matrix weighting:
+#      - Notes: "Only affects GLCM, GLRLM feature classes"
+#  weightingNorm:
+#    - Distance to neighbour
+#  distances: [[1]]
+#    - Feature Class Specific Settings
+#      - First Order
+#  voxelArrayShift: 0
+#      - GLCM
+#  symmetricalGLCM: true
+#      - GLDM
+#  gldm_a: 0
+# =============================================================================
+# Title: Voxel Settings
+# Usage: For more info, see ...
+# =============================================================================
+# voxelSetting:
+#   kernelRadius: 1
+#   maskedKernel: true
+#   initValue: 0
+#  voxelBatch: -1
+  windowing: False 
+  windowInputRange: [-1000.0, 3071.0]
+  windowOutputRange: [0, 4071.0]
