@@ -1,0 +1,10 @@
+[]  src/CTLungSegmentor-takes-one-folder.py
+syntax : CTLungSegmentor-takes-one-folder.py --srcdcmvoldir={srcdcmvoldir} --targetrootdir={targetrootdir}
+ex : CTLungSegmentor-takes-one-folder.py --srcdcmvoldir=/home/ubuntu/ctdata/7119 --targetrootdir=/home/ubuntu/masks
+
+this file takes as input path to a folder where a paient's lung ct image slices in dicom format are stored in
+
+it parses out the last part of input path (presumably patient id ) and creates a target subfolder of same name
+
+file performs johof segmentation and stores an aggregated nrrd format file in the target target root folder and stores slice images in the target subfolder   
+
