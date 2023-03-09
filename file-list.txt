@@ -18,5 +18,5 @@
 
 	this file takes as input path to the folder containing subfolders of individual patients' ct slices data
 
-	internally calls the file	CTLungSegmentor-takes-one-folder.py for volume segmentation on unit patient slices data
+	internally calls the file "CTLungSegmentor-takes-one-folder.py" for volume segmentation on unit patient slices data
 
