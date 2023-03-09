@@ -10,12 +10,7 @@ from lungmask import mask as lmask
 import tensorflow as tf
 import nrrd
 import sys
-import getopt
-from pathlib import Path
-			
-srcdcmvoldir = ''
-targetrootdir = ''
-patientid = '0'
+
 class CTLungSegmentor():
 #	def __init__(self, dicom_folder=None, model="V_UNET", chec kpoint_path="../checkpoints/last.ckpt", device="cpu", batch_size=5):
 	def __init__(self, dicom_folder=None, model="V_UNET", checkpoint_path=None, device="cpu", batch_size=5):
@@ -138,32 +133,12 @@ def rotate_90_degree_clckwise(matrix):
 		new_matrix.append(li)
 	return new_matrix
 
-
 if __name__ == "__main__":
-	argv = sys.argv
-	FILENAME = argv[ 0 ]
-	try : 
-		opts , _ = getopt.getopt ( argv[ 1 : ] , 's:t:' , ['srcdcmvoldir=' , 'targetrootdir=' ] )
-	except getopt.GetoptError : 
-		print ( 'err') ; sys.exit(2)
-#	srcdcmvoldir = ''
-#	targetrootdir = ''
-	for opt , arg in opts :
-		if opt in ( '--srcdcvoldir' ) :			srcdcmvoldir = arg
-		elif opt in ( '--targetrootdir' ) :	targetrootdir = arg
-	
-	if len ( srcdcmvoldir ) <1 or len(targetrootdir) < 1 : 
-		print ( 'syntax:' , FILENAME , '--srcdcmvoldir []' , '--targetrootdir []' ) ; sys.exit(2)
-	if ( os.path.exists( srcdcmvoldir ) ) : pass
-	else : print ( 'srcdir non existent!!!' ) ; sys.exit(2)
-
-	patientid = srcdcmvoldir.split ( '/' )[-1]
-	targetsubdir = targetrootdir + '/' + patientid
-	Path( targetsubdir ).mkdir ( parents = True , exist_ok = True ) 
+	seg = CTLungSegmentor(model=None)
 #	image, mask = seg.generate(dicom_folder="../data/test/1")
 #	dicom_folder = "/mnt/c/data/KNUCH_WRONGCT/7119" 
-	dicom_folder = srcdcmvoldir  # "/mnt/c/data/KNUCH_WRONGCT/test-7119-03images" 
-	seg = CTLungSegmentor(model=None)
+	dicom_folder = "/mnt/c/data/KNUCH_WRONGCT/test-7119-03images" 
+
 	image, mask = seg.generate(dicom_folder=dicom_folder) #
 
 	from torchvision.utils import save_image
@@ -184,9 +159,9 @@ if __name__ == "__main__":
 	 
 	maskextension = 'nrrd'
 	if maskextension == 'nrrd' :
-		nrrd.write ( targetrootdir + '/' + 'mask-' + patientid + '.nrrd' , mask )
+		nrrd.write ( 'mask.nrrd' , mask )
 #		nrrd.write ( mask , 'mask.nrrd' )
 	
 	if True or maskextension == 'png' :
 		for i in range ( 0, nmasks ) :
-			save_image( torch.Tensor ( mask[i , : , :] ) ,targetsubdir + '/' + "mask"+ str( i) +".png", nrow=10)
+			save_image( torch.Tensor ( mask[i , : , :] ) , "mask"+ str( i) +".png", nrow=10)
