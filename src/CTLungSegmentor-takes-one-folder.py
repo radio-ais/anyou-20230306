@@ -12,10 +12,13 @@ import nrrd
 import sys
 import getopt
 from pathlib import Path
-			
-srcdcmvoldir = ''
-targetrootdir = ''
-patientid = '0'
+import os
+import time
+	
+global srcdcmvoldir # = ''
+global targetrootdir # = ''
+global patientid # = '0'
+global timestamp # = 0
 class CTLungSegmentor():
 #	def __init__(self, dicom_folder=None, model="V_UNET", chec kpoint_path="../checkpoints/last.ckpt", device="cpu", batch_size=5):
 	def __init__(self, dicom_folder=None, model="V_UNET", checkpoint_path=None, device="cpu", batch_size=5):
@@ -38,6 +41,7 @@ class CTLungSegmentor():
 			self.model = lmask.get_model('unet', 'R231')
 
 	def generate(self, dicom_folder=None):
+		timestamp = time.time()
 		if dicom_folder and self.tasks:
 			raise Exception("Must set dicom_folder")
 		else:
@@ -65,7 +69,10 @@ class CTLungSegmentor():
 				mask = torch.cat(output, dim=0)
 		else:
 			mask = lmask.apply(image, self.model, force_cpu = True if self.device=="cpu" else False)
-			print ( 'type of mask:' , type( mask ) , 'dimensions:' , mask.shape ) 
+			print ( 'type of mask:' , type( mask ) , 'dimensions:' , mask.shape )
+			curtime = time.time()
+			print ( 'delta time' , curtime - timestamp )
+			timestamp = curtime 
 		return data, mask
 	def generate_V2(self, dicom_folder=None):
 		if dicom_folder and self.tasks:
@@ -138,7 +145,6 @@ def rotate_90_degree_clckwise(matrix):
 		new_matrix.append(li)
 	return new_matrix
 
-
 if __name__ == "__main__":
 	argv = sys.argv
 	FILENAME = argv[ 0 ]
@@ -146,10 +152,10 @@ if __name__ == "__main__":
 		opts , _ = getopt.getopt ( argv[ 1 : ] , 's:t:' , ['srcdcmvoldir=' , 'targetrootdir=' ] )
 	except getopt.GetoptError : 
 		print ( 'err') ; sys.exit(2)
-#	srcdcmvoldir = ''
-#	targetrootdir = ''
+	srcdcmvoldir = ''
+	targetrootdir = ''
 	for opt , arg in opts :
-		if opt in ( '--srcdcvoldir' ) :			srcdcmvoldir = arg
+		if opt in ( '--srcdcmvoldir' ) :			srcdcmvoldir = arg
 		elif opt in ( '--targetrootdir' ) :	targetrootdir = arg
 	
 	if len ( srcdcmvoldir ) <1 or len(targetrootdir) < 1 : 
