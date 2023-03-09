@@ -1,10 +1,22 @@
 []  src/CTLungSegmentor-takes-one-folder.py
-syntax : CTLungSegmentor-takes-one-folder.py --srcdcmvoldir={srcdcmvoldir} --targetrootdir={targetrootdir}
-ex : CTLungSegmentor-takes-one-folder.py --srcdcmvoldir=/home/ubuntu/ctdata/7119 --targetrootdir=/home/ubuntu/masks
+syntax : python3 CTLungSegmentor-takes-one-folder.py --srcdcmvoldir={srcdcmvoldir} --targetrootdir={targetrootdir}
+ex : python3 CTLungSegmentor-takes-one-folder.py --srcdcmvoldir=/home/ubuntu/ctdata/7119 --targetrootdir=/home/ubuntu/masks
 
-this file takes as input path to a folder where a paient's lung ct image slices in dicom format are stored in
+this file takes as input the path to the folder where a paient's lung ct image slices in dicom format are stored in
 
 it parses out the last part of input path (presumably patient id ) and creates a target subfolder of same name
 
 file performs johof segmentation and stores an aggregated nrrd format file in the target target root folder and stores slice images in the target subfolder   
+
+output ex : 
+	{targetrootdir}/{patient id}.nrrd
+	{targetrootdir}/{patient id}/mask1.png , ...
+
+[] src/iterate-segment-multiple-patients.py --srcrootdir={srcrootdir} --targetrootdir={targetrootdir}
+syntax : python3 iterate-segment-multiple-patients.py --srcrootdir={srcrootdir} --targetrootdir={targetrootdir}
+ex : python3 iterate-segment-multiple-patients.py --srcrootdir=/home/ubuntu/ctdata --targetrootdir=/home/ubuntu/masks
+
+this file takes as input path to the folder containing subfolders of individual patients' ct slices data
+
+internally calls the file	CTLungSegmentor-takes-one-folder.py for volume segmentation on unit patient slices data
 
