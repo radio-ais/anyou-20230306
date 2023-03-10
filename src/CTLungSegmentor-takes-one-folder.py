@@ -14,6 +14,7 @@ import getopt
 from pathlib import Path
 import os
 import time
+import itk
 	
 global srcdcmvoldir # = ''
 global targetrootdir # = ''
@@ -190,7 +191,11 @@ if __name__ == "__main__":
 	 
 	maskextension = 'nrrd'
 	if maskextension == 'nrrd' :
-		nrrd.write ( targetrootdir + '/' + 'mask-' + patientid + '.nrrd' , mask )
+		filenamenrrd = targetrootdir + '/' + 'mask-' + patientid + '.nrrd' 
+		sitk.WriteImage ( sitk.GetImageFromArray ( mask ) , filenamenrrd)
+#		sitk.WriteImage ( mask , filenamenrrd ) # errs
+#		sitk.WriteImage ( filenamenrrd , mask ) # wrong arg ordering  
+#		nrrd.write ( filenamenrrd , mask )
 #		nrrd.write ( mask , 'mask.nrrd' )
 	
 	if True or maskextension == 'png' :
