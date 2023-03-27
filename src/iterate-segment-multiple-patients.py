@@ -5,6 +5,7 @@ import sys , getopt
 import time
 import CTLungSegmentor
 from torchvision.utils import save_image
+from CTLungSegmentor import CTLungSegmentor
 
 global srcrootdir
 global targetrootdir
@@ -34,9 +35,10 @@ if __name__ == '__main__' :
 	segmenter = CTLungSegmentor ( model=None, device='cuda' )
 
 	for dirname in listofdirsonly : # per patient
-		print ( dirname )  #		os.system ( 'python3 
+		print ( 'dirname:' + dirname )  #		os.system ( 'python3 
 		timestamp = time.time()
-		image , mask = segmenter.generate_V2 ( dicom_folder = dirname )
+		dicom_folder =  srcrootdir +'/'+dirname ; print ( 'dicom_folder: ' + dicom_folder )
+		image , mask = segmenter.generate_V2 ( dicom_folder = dicom_folder )
 #		continue
 #		call ( [ 'python3' , '/home/ubuntu/anyou-20230306/src/CTLungSegmentor-takes-one-folder.py' , '--srcdcmvoldir='+srcrootdir+'/'+dirname , '--targetrootdir='+targetrootdir ] )
 		imageArray = sitk.GetArrayFromImage(image)
