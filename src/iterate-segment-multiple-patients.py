@@ -38,7 +38,7 @@ if __name__ == '__main__' :
 	listofdirsonly = list0
 	print ( listofdirsonly )
 	n_dirs_processed = 0
-	segmenter = CTLungSegmentor ( model=None, device='cpu' )
+	segmenter = CTLungSegmentor ( model=None, device='cuda' )
 
 	for dirname in listofdirsonly : # per patient
 #		print ( 'dirname:' + dirname )  #		os.system ( 'python3 
