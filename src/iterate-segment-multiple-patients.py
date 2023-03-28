@@ -6,6 +6,10 @@ import time
 import CTLungSegmentor
 from torchvision.utils import save_image
 from CTLungSegmentor import CTLungSegmentor
+import SimpleITK as sitk
+import numpy as np
+import torch
+from pathlib import Path
 
 global srcrootdir
 global targetrootdir
@@ -30,14 +34,19 @@ if __name__ == '__main__' :
 		
 	list0 = os.listdir ( srcrootdir ) # '.') # print ( 'list', list0  )
 	print ( list0 )
-	listofdirsonly = list ( filter(lambda x: os.path.isdir( x ) , list0 ) ) # print ( 'only dirs' , listofdirsonly) 
+#	listofdirsonly = list ( filter(lambda x: os.path.isdir( x ) , list0 ) ) # print ( 'only dirs' , listofdirsonly) 
+	listofdirsonly = list0
+	print ( listofdirsonly )
 	n_dirs_processed = 0
-	segmenter = CTLungSegmentor ( model=None, device='cuda' )
+	segmenter = CTLungSegmentor ( model=None, device='cpu' )
 
 	for dirname in listofdirsonly : # per patient
-		print ( 'dirname:' + dirname )  #		os.system ( 'python3 
+#		print ( 'dirname:' + dirname )  #		os.system ( 'python3 
 		timestamp = time.time()
-		dicom_folder =  srcrootdir +'/'+dirname ; print ( 'dicom_folder: ' + dicom_folder )
+		dicom_folder =  srcrootdir +'/'+dirname ; 
+		print ( 'dicom_folder: ' + dicom_folder )
+		patient_id = Path( dirname ).stem
+
 		image , mask = segmenter.generate_V2 ( dicom_folder = dicom_folder )
 #		continue
 #		call ( [ 'python3' , '/home/ubuntu/anyou-20230306/src/CTLungSegmentor-takes-one-folder.py' , '--srcdcmvoldir='+srcrootdir+'/'+dirname , '--targetrootdir='+targetrootdir ] )
@@ -49,11 +58,11 @@ if __name__ == '__main__' :
 		maskArray = sitk.GetArrayFromImage(mask)
 		maskArray = (torch.FloatTensor(maskArray)).unsqueeze(0).permute(1,0,2,3)
 #print(imageArray.shape, maskArray.shape, imageArray.dtype, maskArray.dtype)
-		save_image(imageArray, f"{patient_id}-image.png", nrow=10)
-		save_image(maskArray, f"{patient_id}-mask.png", nrow=10, normalize = True)
+		save_image(imageArray, f"{targetrootdir}/{patient_id}-image.png", nrow=10)
+		save_image(maskArray,  f"{targetrootdir}/{patient_id}-mask.png", nrow=10, normalize = True)
 
-		sitk.WriteImage( image, str( patient_id ) + "image.nrrd")
-		sitk.WriteImage( mask, str( patient_id ) + "mask.nrrd")
+		sitk.WriteImage( image, targetrootdir +'/'+ str( patient_id ) + "image.nrrd")
+		sitk.WriteImage( mask,  targetrootdir +'/'+ str( patient_id ) + "mask.nrrd")
 	# sitk.WriteImage(mask, "mask.nrrd")
 
 		curtime = time.time()
