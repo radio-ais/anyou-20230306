@@ -80,8 +80,8 @@ if __name__ == '__main__' :
 		save_image ( imageArray, f"{targetrootdir}/{patient_id}-image.png", nrow=10 )
 		save_image(maskArray,  f"{targetrootdir}/{patient_id}-mask.png", nrow=10, normalize = True )
 
-		sitk.WriteImage( image, targetrootdir +'/'+ str( patient_id ) + "image.nrrd")
-		sitk.WriteImage( mask,  targetrootdir +'/'+ str( patient_id ) + "mask.nrrd")
+		sitk.WriteImage( image, targetrootdir +'/'+ str( patient_id ) + "-image.nrrd")
+		sitk.WriteImage( mask,  targetrootdir +'/'+ str( patient_id ) + "-mask.nrrd")
 	# sitk.WriteImage(mask, "mask.nrrd")
 
 		curtime = time.time()
