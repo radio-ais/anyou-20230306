@@ -3,8 +3,13 @@ from numpy.linalg import inv
 import pydicom as dcm
 import cv2 as cv
 import SimpleITK as sitk
-
-def _load_image(image_dir: str mask=True, mask_name="Both Lung", fill_holes=False, kernel_size=5):
+import os
+def conv_rsstruct_to_nrrd(image_dir: str , 
+			mask=True, 
+			mask_name="Both Lung", 
+			fill_holes=False, 
+			kernel_size=5
+	):
     reader = sitk.ImageSeriesReader()
     files = reader.GetGDCMSeriesFileNames(image_dir)
     reader.SetFileNames(files)
@@ -14,16 +19,12 @@ def _load_image(image_dir: str mask=True, mask_name="Both Lung", fill_holes=Fals
         rs_files = [file for file in os.listdir(image_dir) if "RS" == file[:2]] # assuming RTStruct file starts with RS
         if len(rs_files) < 1:
             print("Mask not found for", image)
-
         spacing = image.GetSpacing()
         inv_direction = inv(np.array(image.GetDirection()).reshape(3,3)) # assuming 3x3 cosine direction matrix
         origin = image.GetOrigin()
         size = image.GetSize()
-
         maskArray = np.zeros(size[::-1]).astype(np.uint8)
-
         rs = dcm.read_file(os.path.join(image_dir, rs_files[0]))
-
         roi_number = str(0)
         for ss_roi in rs.StructureSetROISequence:
             if ss_roi.ROIName == mask_name:
@@ -60,18 +61,22 @@ def _load_image(image_dir: str mask=True, mask_name="Both Lung", fill_holes=Fals
     return image, mask
 
 if __name__ == "__main__":
-    PATH_TO_DCM=""
+    PATH_TO_DCM = "/home/ubuntu/data/dcm/KNUH/1431"
     MASK_NAME=""
     FILL_HOLES=False
     KERNEL_SIZE=5
-    SAVE_IMAGE_FILE="image.nii.gz"
-    SAVE_MASK_FILE="mask.nii.gz"
-
-    image, mask = _load_image(PATH_TO_DCM,
+    image, mask = conv_rsstruct_to_nrrd(PATH_TO_DCM,
                               mask=True,
-                              mask_name=MASK_NAME,
+#                              mask_name=MASK_NAME,
                               fill_holes=FILL_HOLES,
                               kernel_size=KERNEL_SIZE)
+    SAVE_IMAGE_FILE ="image.nrrd.gz"
+    SAVE_MASK_FILE = "mask.nrrd.gz"
+    sitk.WriteImage(image, SAVE_IMAGE_FILE)
+    sitk.WriteImage(mask, SAVE_MASK_FILE)
 
+
+    SAVE_IMAGE_FILE ="image.nii.gz"
+    SAVE_MASK_FILE = "mask.nii.gz"
     sitk.WriteImage(image, SAVE_IMAGE_FILE)
     sitk.WriteImage(mask, SAVE_MASK_FILE)
