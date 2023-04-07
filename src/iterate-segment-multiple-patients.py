@@ -38,8 +38,8 @@ if __name__ == '__main__' :
 	listofdirsonly = list0
 	print ( listofdirsonly )
 	n_dirs_processed = 0
-#	segmenter = CTLungSegmentor ( model=None, device='cuda' )
-	segmenter = CTLungSegmentor ( model=None, device='cpu' )
+	segmenter = CTLungSegmentor ( model=None, device='cuda' )
+#	segmenter = CTLungSegmentor ( model=None, device='cpu' )
 #	state= 0 
 	d_causes_errors = { '7446' : 1 }
 	for dirname in listofdirsonly : # per patient
