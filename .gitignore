@@ -1,0 +1,13 @@
+results/*
+__pycache__/*
+mask*png
+
+results-tstsmall/*
+*.deb
+*.nrrd
+*.gz
+*.nii
+
+*.png
+
+*.zip

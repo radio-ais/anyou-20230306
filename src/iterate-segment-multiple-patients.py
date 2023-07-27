@@ -31,7 +31,7 @@ if __name__ == '__main__' :
 		print ( 'syntax' , FILENAME , '--srcrootdir=[]', '--targetrootdir=[]' ) ; sys.exit(2)
 	if ( os.path.exists ( srcrootdir) ) : pass
 	else : print ( 'srcdir non existent!!!' ) ; sys.exit(2)
-		
+
 	list0 = os.listdir ( srcrootdir ) # '.') # print ( 'list', list0  )
 	print ( list0 )
 #	listofdirsonly = list ( filter(lambda x: os.path.isdir( x ) , list0 ) ) # print ( 'only dirs' , listofdirsonly) 
@@ -45,7 +45,7 @@ if __name__ == '__main__' :
 	for dirname in listofdirsonly : # per patient
 #		print ( 'dirname:' + dirname )  #		os.system ( 'python3 
 		timestamp = time.time()
-		dicom_folder =  srcrootdir +'/'+dirname ; 
+		dicom_folder =  srcrootdir +'/'+dirname
 		print ( 'dicom_folder: ' + dicom_folder )
 		patient_id = Path( dirname ).stem
 
@@ -61,24 +61,23 @@ if __name__ == '__main__' :
 #		if ( str(patient_id) == '7332' ) : state += 1 ; continue
 #		if ( state == 2 ): pass
 #		else : continue
-
 		image , mask = segmenter.generate_V2 ( dicom_folder = dicom_folder )
 #		continue
 #		call ( [ 'python3' , '/home/ubuntu/anyou-20230306/src/CTLungSegmentor-takes-one-folder.py' , '--srcdcmvoldir='+srcrootdir+'/'+dirname , '--targetrootdir='+targetrootdir ] )
-		imageArray = sitk.GetArrayFromImage(image)
-		ia_min = np.min([-1000, imageArray.min()])
-		ia_max = np.max([imageArray.max(), 3096])
+		imageArray = sitk.GetArrayFromImage( image )
+		ia_min = np.min( [ -1000, imageArray.min()] )
+		ia_max = np.max( [ imageArray.max(), 3096] )
 
-		imageArray = (imageArray - ia_min) / (ia_max - ia_min)
-		imageArray = (torch.FloatTensor(imageArray)).unsqueeze(0).permute(1,0,2,3)
+		imageArray = ( imageArray - ia_min ) / (ia_max - ia_min)
+		imageArray = ( torch.FloatTensor(imageArray )).unsqueeze(0).permute(1,0,2,3)
 
-		maskArray = sitk.GetArrayFromImage(mask)
-		maskArray = (torch.FloatTensor(maskArray)).unsqueeze(0).permute(1,0,2,3)
+		maskArray = sitk.GetArrayFromImage( mask )
+		maskArray = ( torch.FloatTensor(maskArray)).unsqueeze( 0 ).permute(1,0,2,3)
 #print(imageArray.shape, maskArray.shape, imageArray.dtype, maskArray.dtype)
 		print ( 'imageArray.shape', imageArray.shape , type(imageArray ) )  
-		print ( 'maskArray.shape', maskArray.shape , type( maskArray )) 
+		print ( 'maskArray.shape', maskArray.shape , type( maskArray ) ) 
 		save_image ( imageArray, f"{targetrootdir}/{patient_id}-image.png", nrow=10 )
-		save_image(maskArray,  f"{targetrootdir}/{patient_id}-mask.png", nrow=10, normalize = True )
+		save_image ( maskArray,  f"{targetrootdir}/{patient_id}-mask.png", nrow=10, normalize = True )
 
 		sitk.WriteImage( image, targetrootdir +'/'+ str( patient_id ) + "-image.nrrd")
 		sitk.WriteImage( mask,  targetrootdir +'/'+ str( patient_id ) + "-mask.nrrd")
@@ -89,4 +88,3 @@ if __name__ == '__main__' :
 		n_dirs_processed += 1
 		print ( 'n_dirs_processed: ' , n_dirs_processed )  
 		curtime = timestamp
-
