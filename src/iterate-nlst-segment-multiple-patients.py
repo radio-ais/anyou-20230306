@@ -27,7 +27,7 @@ ROOTDATADIR= '/data1'
 targetrootdir = '/data2/nlst/nrrd'
 n_dirs_processed= 0 
 segmenter = CTLungSegmentor ( model=None, device='cuda' )
-
+THRESH_SLICE_COUNT =40 
 def postsavefile ( image ,mask , pid , sigsha  ) : 
 	imageArray = sitk.GetArrayFromImage(image)
 	ia_min = np.min([-1000, imageArray.min()])
@@ -40,19 +40,25 @@ def postsavefile ( image ,mask , pid , sigsha  ) :
 	
 	targetdir = os.path.join ( targetrootdir , f'{pid}_{sigsha}' ) 	
 	Path( targetdir ).mkdir( parents=True, exist_ok=True)
-	print ( 'targetdir' , targetdir )	
+	print ( '@@@targetdir' , targetdir )	
 	save_image(imageArray, os.path.join ( targetdir , f"{pid}-{sigsha}-image.png"), nrow=10 )
 	save_image(maskArray,  os.path.join ( targetdir , f"{pid}-{sigsha}-mask.png"), nrow=10, normalize = True )
 
-	sitk.WriteImage(image, os.path.join ( targetdir , f"{pid}-{sigsha}-image.nrrd" ) )
-	sitk.WriteImage(mask,  os.path.join ( targetdir , f"{pid}-{sigsha}-mask.nrrd") )
+	sitk.WriteImage(image, os.path.join ( targetdir , f"{pid}-{sigsha}-image.nrrd" ))
+#	sitk.WriteImage(image, os.path.join ( targetdir , f"{pid}-{sigsha}-image.nrrd" ) , useCompression=True)
+
+#	mask = sitk.Cast( mask , sitk.sitkFloat16 ) 
+#	mask = sitk.Cast( mask , sitk.sitkFloat32 ) 
+	sitk.WriteImage((mask),  os.path.join ( targetdir , f"{pid}-{sigsha}-mask.nrrd")  )
+#	sitk.WriteImage((mask),  os.path.join ( targetdir , f"{pid}-{sigsha}-mask.nrrd") , useCompression=True )
 	
 # for inst in session.query ( db.Metadata ) :
-for inst in session.query ( db.Metadatum ) :
+for inst in session.query ( db.Metadatum ).filter ( db.Metadatum.numberofimagesi >= THRESH_SLICE_COUNT ) :
 	print (  inst.setnumber, inst.filelocation )
 #	fnfull = os.path.join ( ROOTDATADIR , 'nlst_'+ '%02d'%(inst.setnumber )  , filelocation )
 	pid = inst.pid
 	sigsha = inst.sigsha
+	numberofimages = inst.numberofimagesi
 	fnfull = os.path.join ( ROOTDATADIR , 'nlst_'+ ( inst.setnumber )  , inst.filelocation )
 	isexists = os.path.exists ( fnfull )
 	print ( isexists , fnfull )
@@ -66,12 +72,15 @@ for inst in session.query ( db.Metadatum ) :
 	if ( os.path.isfile( dicom_folder ) ) : print ( '!!! is a file '+fnfull ) ; continue 
 	else : pass
 	image , mask = segmenter.generate_V2 ( dicom_folder = dicom_folder )
+	print ( 'type of mask',type( mask ) , 'numberofimages' , numberofimages )
 	toc = time.time()
 	postsavefile ( image ,mask , pid , sigsha  ) 
 
 	print ( type ( image ) , type(mask) , toc-tic )
 	idx += 1
-	if ( idx>=4 ) : sys.exit ( 1 ) 
+	if ( idx>=10 ) : sys.exit ( 1 ) 
+#	if ( idx>=5 ) : sys.exit ( 1 ) 
+#	if ( idx>=3 ) : sys.exit ( 1 ) 
 	
 	print
 # # stmt = sqlalchemy.select( db.Metadata ).where (db.Feature.id4.in_( [ inst.id4 ] ))
