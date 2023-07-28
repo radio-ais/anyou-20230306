@@ -9,7 +9,10 @@ from SemSegmentV1 import SemSegmentV1
 from lungmask import mask as lmask
 
 class CTLungSegmentor():
-	def __init__(self, dicom_folder=None, model="V_UNET", checkpoint_path="../checkpoints/last.ckpt", device="cpu", batch_size=5):
+	def __init__(self, dicom_folder=None, model="V_UNET", # checkpoint_path="../checkpoints/last.ckpt", 
+#		device="cpu", 
+		device="cuda",
+		batch_size=5):
 		self.tasks = dicom_folder
 		self.model_name = model
 		self.device = device
@@ -123,7 +126,8 @@ def plot_result(image, mask, n_cols=5, size=3, figsize=(4, 20)):
 if __name__ == "__main__":
 	import os
 	from tqdm import tqdm
-	seg = CTLungSegmentor(model=None, device="cpu")
+#	seg = CTLungSegmentor(model=None, device="cpu")
+	seg = CTLungSegmentor(model=None, device="cuda")
 	# base_dir = "/mnt/yando_2/Databank/1_Radiology/in_house/Lung/RP_KNU_TOTAL_DCM/MYKNUCH/"
 #	patient_ids = os.listdir(base_dir)
 #	for patient_id in tqdm(patient_ids):

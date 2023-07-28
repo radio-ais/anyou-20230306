@@ -14,7 +14,8 @@ import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import inspect
-
+import nlst_classes as db
+from torchvision.utils import save_image
 global srcrootdir
 global targetrootdir
 
@@ -22,9 +23,57 @@ engine = create_engine( "mysql+mysqlconnector://radiopneumo:aupkDRsx92@localhost
 Session = sessionmaker( bind=engine )
 session = Session()
 idx = 0 
-for inst in session.query ( db.Metadata ) :
+ROOTDATADIR= '/data1'
+targetrootdir = '/data2/nlst/nrrd'
+n_dirs_processed= 0 
+segmenter = CTLungSegmentor ( model=None, device='cuda' )
 
+def postsavefile ( image ,mask , pid , sigsha  ) : 
+	imageArray = sitk.GetArrayFromImage(image)
+	ia_min = np.min([-1000, imageArray.min()])
+	ia_max = np.max([imageArray.max(), 3096])
+	imageArray = (imageArray - ia_min) / (ia_max - ia_min)
+	imageArray = (torch.FloatTensor(imageArray)).unsqueeze(0).permute(1,0,2,3)
+	maskArray = sitk.GetArrayFromImage(mask)
+	maskArray = (torch.FloatTensor(maskArray)).unsqueeze(0).permute(1,0,2,3)
+	#print(imageArray.shape, maskArray.shape, imageArray.dtype, maskArray.dtype)
+	
+	targetdir = os.path.join ( targetrootdir , f'{pid}_{sigsha}' ) 	
+	Path( targetdir ).mkdir( parents=True, exist_ok=True)
+	print ( 'targetdir' , targetdir )	
+	save_image(imageArray, os.path.join ( targetdir , f"{pid}-{sigsha}-image.png"), nrow=10 )
+	save_image(maskArray,  os.path.join ( targetdir , f"{pid}-{sigsha}-mask.png"), nrow=10, normalize = True )
 
+	sitk.WriteImage(image, os.path.join ( targetdir , f"{pid}-{sigsha}-image.nrrd" ) )
+	sitk.WriteImage(mask,  os.path.join ( targetdir , f"{pid}-{sigsha}-mask.nrrd") )
+	
+# for inst in session.query ( db.Metadata ) :
+for inst in session.query ( db.Metadatum ) :
+	print (  inst.setnumber, inst.filelocation )
+#	fnfull = os.path.join ( ROOTDATADIR , 'nlst_'+ '%02d'%(inst.setnumber )  , filelocation )
+	pid = inst.pid
+	sigsha = inst.sigsha
+	fnfull = os.path.join ( ROOTDATADIR , 'nlst_'+ ( inst.setnumber )  , inst.filelocation )
+	isexists = os.path.exists ( fnfull )
+	print ( isexists , fnfull )
+	if ( isexists ) : pass
+	else : print ( '!!! does not exist:'+fnfull ) ; continue 
+	tic = time.time()
+
+	dicom_folder =  fnfull # srcrootdir +'/'+dirname
+	print ( 'dicom_folder: ' + dicom_folder )
+#	patient_id = Path( dirname ).stem
+	if ( os.path.isfile( dicom_folder ) ) : print ( '!!! is a file '+fnfull ) ; continue 
+	else : pass
+	image , mask = segmenter.generate_V2 ( dicom_folder = dicom_folder )
+	toc = time.time()
+	postsavefile ( image ,mask , pid , sigsha  ) 
+
+	print ( type ( image ) , type(mask) , toc-tic )
+	idx += 1
+	if ( idx>=4 ) : sys.exit ( 1 ) 
+	
+	print
 # # stmt = sqlalchemy.select( db.Metadata ).where (db.Feature.id4.in_( [ inst.id4 ] ))
 # if __name__ == '__main__' :
 # 	argv = sys.argv
