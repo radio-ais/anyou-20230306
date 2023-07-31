@@ -6,6 +6,15 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 metadata = Base.metadata
 
+class Worklog(Base):
+	__tablename__ = 'worklogs'
+
+	id = Column(BIGINT(20), primary_key=True)
+	createdat = Column(DateTime, server_default=text("current_timestamp()"))
+	updatedat = Column(DateTime)
+#	notfound = Column( String (200 ) )
+	reason = Column( String ( 50 ) )
+	dirname = Column ( String ( 800 ) )
 
 class Ctab(Base):
 	__tablename__ = 'ctab'

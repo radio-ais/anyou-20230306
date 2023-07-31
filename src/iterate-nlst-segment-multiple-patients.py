@@ -16,6 +16,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import inspect
 import nlst_classes as db
 from torchvision.utils import save_image
+from glob import glob
 global srcrootdir
 global targetrootdir
 
@@ -28,6 +29,13 @@ targetrootdir = '/data2/nlst/nrrd'
 n_dirs_processed= 0 
 segmenter = CTLungSegmentor ( model=None, device='cuda' )
 THRESH_SLICE_COUNT =40 
+
+def isoutputfilepresent ( pid , sigsha ) :
+	targetdir = os.path.join ( targetrootdir , f'{pid}_{sigsha}' ) 	
+	aresp = glob( os.path.join ( targetdir , '*-image.nrrd' ) )
+	if ( len(aresp)>0 ) : return True
+	else : return False
+
 def postsavefile ( image ,mask , pid , sigsha  ) : 
 	imageArray = sitk.GetArrayFromImage(image)
 	ia_min = np.min([-1000, imageArray.min()])
@@ -41,48 +49,65 @@ def postsavefile ( image ,mask , pid , sigsha  ) :
 	targetdir = os.path.join ( targetrootdir , f'{pid}_{sigsha}' ) 	
 	Path( targetdir ).mkdir( parents=True, exist_ok=True)
 	print ( '@@@targetdir' , targetdir )	
-	save_image(imageArray, os.path.join ( targetdir , f"{pid}-{sigsha}-image.png"), nrow=10 )
+	if False :	save_image(imageArray, os.path.join ( targetdir , f"{pid}-{sigsha}-image.png"), nrow=10 ) # this guy a little too big
 	save_image(maskArray,  os.path.join ( targetdir , f"{pid}-{sigsha}-mask.png"), nrow=10, normalize = True )
 
 	sitk.WriteImage(image, os.path.join ( targetdir , f"{pid}-{sigsha}-image.nrrd" ))
-#	sitk.WriteImage(image, os.path.join ( targetdir , f"{pid}-{sigsha}-image.nrrd" ) , useCompression=True)
+	sitk.WriteImage(image, os.path.join ( targetdir , f"{pid}-{sigsha}-image.nrrd" ) , useCompression=True)
 
 #	mask = sitk.Cast( mask , sitk.sitkFloat16 ) 
-#	mask = sitk.Cast( mask , sitk.sitkFloat32 ) 
+	mask = sitk.Cast( mask , sitk.sitkFloat32 ) 
 	sitk.WriteImage((mask),  os.path.join ( targetdir , f"{pid}-{sigsha}-mask.nrrd")  )
-#	sitk.WriteImage((mask),  os.path.join ( targetdir , f"{pid}-{sigsha}-mask.nrrd") , useCompression=True )
+	sitk.WriteImage((mask),  os.path.join ( targetdir , f"{pid}-{sigsha}-mask.nrrd") , useCompression=True )
 	
 # for inst in session.query ( db.Metadata ) :
-for inst in session.query ( db.Metadatum ).filter ( db.Metadatum.numberofimagesi >= THRESH_SLICE_COUNT ) :
+aresquery = session.query ( db.Metadatum ).filter ( db.Metadatum.numberofimagesi >= THRESH_SLICE_COUNT ).order_by( db.Metadatum.id.desc() )
+# aresquery.reverse()
+for inst in aresquery :
 	print (  inst.setnumber, inst.filelocation )
-#	fnfull = os.path.join ( ROOTDATADIR , 'nlst_'+ '%02d'%(inst.setnumber )  , filelocation )
+#	dirnamefullsrc = os.path.join ( ROOTDATADIR , 'nlst_'+ '%02d'%(inst.setnumber )  , filelocation )
 	pid = inst.pid
 	sigsha = inst.sigsha
+
+	if isoutputfilepresent ( pid , sigsha ) : print ( 'output present' , pid, sigsha ) ; continue
+	else : pass 
+
 	numberofimages = inst.numberofimagesi
-	fnfull = os.path.join ( ROOTDATADIR , 'nlst_'+ ( inst.setnumber )  , inst.filelocation )
-	isexists = os.path.exists ( fnfull )
-	print ( isexists , fnfull )
+	dirnamefullsrc = os.path.join ( ROOTDATADIR , 'nlst_'+ ( inst.setnumber )  , inst.filelocation )
+	isexists = os.path.exists ( dirnamefullsrc )
+	print ( isexists , dirnamefullsrc )
 	if ( isexists ) : pass
-	else : print ( '!!! does not exist:'+fnfull ) ; continue 
+	else : 
+		print ( '!!! does not exist: '+dirnamefullsrc ) ;
+#		session.add ( db.Worklog ( db.Worklog.dirname= dirnamefullsrc , db.Worklog.reason ='not-found' ) )
+		session.add ( db.Worklog ( dirname= dirnamefullsrc , reason ='not-found' ) )
+		session.commit()
+		continue 
 	tic = time.time()
 
-	dicom_folder =  fnfull # srcrootdir +'/'+dirname
+	dicom_folder =  dirnamefullsrc # srcrootdir +'/'+dirname
 	print ( 'dicom_folder: ' + dicom_folder )
 #	patient_id = Path( dirname ).stem
-	if ( os.path.isfile( dicom_folder ) ) : print ( '!!! is a file '+fnfull ) ; continue 
+	if ( os.path.isfile( dicom_folder ) ) : print ( '!!! is a file '+dirnamefullsrc ) ; continue 
 	else : pass
 	image , mask = segmenter.generate_V2 ( dicom_folder = dicom_folder )
+	if image : pass
+	else :
+#		session.add ( db.Worklog ( db.Worklog.dirname= dirnamefullsrc , db.Worklog.reason ='size-mismatch' ) )
+		session.add ( db.Worklog ( dirname= dirnamefullsrc , reason ='size-mismatch' ) )
+		continue
+ 
 	print ( 'type of mask',type( mask ) , 'numberofimages' , numberofimages )
 	toc = time.time()
 	postsavefile ( image ,mask , pid , sigsha  ) 
 
 	print ( type ( image ) , type(mask) , toc-tic )
 	idx += 1
-	if ( idx>=10 ) : sys.exit ( 1 ) 
+#	if ( idx>=10 ) : sys.exit ( 1 ) 
 #	if ( idx>=5 ) : sys.exit ( 1 ) 
 #	if ( idx>=3 ) : sys.exit ( 1 ) 
 	
-	print
+#	print
 # # stmt = sqlalchemy.select( db.Metadata ).where (db.Feature.id4.in_( [ inst.id4 ] ))
 # if __name__ == '__main__' :
 # 	argv = sys.argv

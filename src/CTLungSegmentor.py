@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from torchvision.utils import save_image
 from SemSegmentV1 import SemSegmentV1
 from lungmask import mask as lmask
-
+import sys
 class CTLungSegmentor():
 	def __init__(self, dicom_folder=None, model="V_UNET", # checkpoint_path="../checkpoints/last.ckpt", 
 #		device="cpu", 
@@ -38,9 +38,12 @@ class CTLungSegmentor():
 			series_ids = reader.GetGDCMSeriesFileNames(dicom_folder)
 			print(series_ids)
 			files = reader.GetGDCMSeriesFileNames(dicom_folder)
+			print ('files', files )
 			reader.SetFileNames(files)
+
 			image = reader.Execute()
 			image_array = sitk.GetArrayFromImage(image)
+			
 			ia_min = np.min([-1000, image_array.min()])
 			ia_max = np.max([image_array.max(), 3096])
 			data = (image_array - ia_min) / (ia_max - ia_min)
@@ -69,7 +72,11 @@ class CTLungSegmentor():
 			for series_id in series_ids:
 				files = reader.GetGDCMSeriesFileNames(dicom_folder, series_id)
 				reader.SetFileNames(files)
-				image = reader.Execute()
+#				sys.exit( -1)
+				try : 					image = reader.Execute()
+				except : return None, None 
+
+#				sys.exit( -1)
 				print(f"{series_id}-{image.GetSize()}")
 				if image.GetSize()[-1] < 10:
 					continue
