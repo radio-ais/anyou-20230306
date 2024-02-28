@@ -33,6 +33,8 @@ if __name__ == '__main__' :
 	else : print ( 'srcdir non existent!!!' ) ; sys.exit(2)
 
 	list0 = os.listdir ( srcrootdir ) # '.') # print ( 'list', list0  )
+	list0.sort()
+	# list0.reverse()
 	print ( list0 )
 #	listofdirsonly = list ( filter(lambda x: os.path.isdir( x ) , list0 ) ) # print ( 'only dirs' , listofdirsonly) 
 	listofdirsonly = list0

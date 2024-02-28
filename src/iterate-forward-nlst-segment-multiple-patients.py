@@ -25,16 +25,19 @@ Session = sessionmaker( bind=engine )
 session = Session()
 idx = 0 
 ROOTDATADIR= '/data1'
-targetrootdir = '/data2/nlst/nrrd'
+targetrootdir = '/data1/nlst/nrrd'
+prevsavedirs= [ '/data2/nlst/nrrd' , '/data1/nlst/nrrd' ]
 n_dirs_processed= 0 
 segmenter = CTLungSegmentor ( model=None, device='cuda' )
 THRESH_SLICE_COUNT =40 
 
 def isoutputfilepresent ( pid , sigsha ) :
-	targetdir = os.path.join ( targetrootdir , f'{pid}_{sigsha}' ) 	
-	aresp = glob( os.path.join ( targetdir , '*-image.nrrd' ) )
-	if ( len(aresp)>0 ) : return True
-	else : return False
+	for prevsavedir in prevsavedirs :
+		targetdir = os.path.join ( prevsavedir  , f'{pid}_{sigsha}' ) 	
+		aresp = glob( os.path.join ( targetdir , '*-image.nrrd' ) )
+		if ( len(aresp)>0 ) : return True
+		else : continue
+	return False
 
 def postsavefile ( image ,mask , pid , sigsha  ) : 
 	imageArray = sitk.GetArrayFromImage(image)
@@ -61,7 +64,8 @@ def postsavefile ( image ,mask , pid , sigsha  ) :
 	sitk.WriteImage((mask),  os.path.join ( targetdir , f"{pid}-{sigsha}-mask.nrrd") , useCompression=True )
 	
 # for inst in session.query ( db.Metadata ) :
-aresquery = session.query ( db.Metadatum ).filter ( db.Metadatum.numberofimagesi >= THRESH_SLICE_COUNT ).order_by( db.Metadatum.id.desc() )
+# aresquery = session.query ( db.Metadatum ).filter ( db.Metadatum.numberofimagesi >= THRESH_SLICE_COUNT ).order_by( db.Metadatum.id.desc() )
+aresquery = session.query ( db.Metadatum ).filter ( db.Metadatum.numberofimagesi >= THRESH_SLICE_COUNT ).order_by( db.Metadatum.id.asc() )
 # aresquery.reverse()
 for inst in aresquery :
 	print (  inst.setnumber, inst.filelocation )
